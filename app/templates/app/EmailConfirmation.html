@@ -1,0 +1,93 @@
+
+{% autoescape off %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Validation</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #ffffff;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            text-align: center;
+            background-color: rgba(61, 55, 241, 1);
+            color: #ffffff;
+            padding: 10px 0;
+        }
+        h3 {
+            color: rgba(61, 55, 241, 1);
+            text-align: center;
+        }
+        p {
+            font-size: 16px;
+            margin-bottom: 20px;
+        }
+        .btn-primary {
+            background-color: rgba(61, 55, 241, 1);
+
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 5px;
+            display: block;
+            margin: 0 auto;
+            text-align: center;
+        }
+        h4 {
+            text-align: center;
+            color: #555555;
+        }
+
+        span {
+            font-weight: bolder;
+            color: #555555;
+        }
+
+        span.blanc {
+            color: white;
+        }
+
+
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h1>Sorayia - Validation d'email</h1>
+    </div>
+    <h3>
+
+    </h3>
+
+    <p>
+        Salut <span>{{ user.first_name }} {{ user.last_name }}</span>. Nous vous remercion d'avoir choisi Sorayia pour
+        vos utilisations de chabot.
+        Veuillez bien valider votre email en cliquant sur le bouton ci-dessous pour commencer à exploiter le monde merveilleux des chatbots
+    </p>
+
+    <p style="text-align: center;">
+
+            <a class="btn-primary" href="{{ domain }}/admin/organisations/s1/1"><span class="blanc">Valider</span></a>
+
+    </p>
+
+    <h4>Merci, l'équipe Sorayia</h4>
+</div>
+
+</body>
+</html>
+
+
+{% endautoescape %}

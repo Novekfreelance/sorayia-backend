@@ -41,7 +41,8 @@ INSTALLED_APPS = [
     'app',
     'bot',
 
-    'drf_yasg'
+    'drf_yasg',
+    'rest_framework.authtoken'
 ]
 
 MIDDLEWARE = [
@@ -54,24 +55,25 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-SWAGGER_SETTINGS = {
-    'SECURITY_DEFINITIONS': {
-        'api_key': {
-            'type': 'apiKey',
-            'in': 'header',
-            'name': 'Authorization'
-        }
-    },
-}
-
-
-# REST_FRAMEWORK = {
-#
-#     'DEFAULT_AUTHENTICATION_CLASSES': (
-#          'rest_framework.authentication.TokenAuthentication',
-#          'rest_framework.authentication.SessionAuthentication'
-#     )
+# SWAGGER_SETTINGS = {
+#     'SECURITY_DEFINITIONS': {
+#         'api_key': {
+#             'type': 'apiKey',
+#             'in': 'header',
+#             'name': 'Authorization'
+#         }
+#     },
 # }
+
+SILENCED_SYSTEM_CHECKS = ["auth.E003", "auth.W004"]
+
+
+REST_FRAMEWORK = {
+
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+         'rest_framework.authentication.TokenAuthentication',
+    )
+}
 
 ROOT_URLCONF = 'SorayiaAPI.urls'
 
@@ -99,10 +101,34 @@ WSGI_APPLICATION = 'SorayiaAPI.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'sorayi4_b4t',
+        'USER': 'root',
+        'PASSWORD': 'dona',
+        'HOST': 'localhost',
+        'PORT': '3306'
     }
 }
+
+
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.mysql',
+#         'NAME': 'vote$%122',
+#         'USER': 'root',
+#         'PASSWORD': 'dona',
+#         'HOST': 'localhost',
+#         'PORT': '3306'
+#     }
+# }
+
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_USE_TLS = True
+EMAIL_PORT = 587
+EMAIL_HOST_USER = "novekfreelance.team@gmail.com"
+EMAIL_HOST_PASSWORD = "acpdfvurkxitvtzt"
 
 
 # Password validation
@@ -145,3 +171,4 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+AUTH_USER_MODEL = 'app.User'
