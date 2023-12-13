@@ -13,6 +13,7 @@ from app.auth import serializers
 from app import models
 from rest_framework.authtoken.models import Token
 from rest_framework import status, exceptions
+from rest_framework.serializers import Serializer
 
 
 # Create your views here.
@@ -20,7 +21,7 @@ from rest_framework import status, exceptions
 # Auth
 
 
-@swagger_auto_schema(tags=['auth'], method='post', )
+@swagger_auto_schema(tags=['auth'], method='post', request_body=serializers.UserAuth)
 @api_view(['POST'])
 def login(request):
     user_auth_serializer = serializers.UserAuth(data=request.data)
@@ -79,7 +80,7 @@ def register(request):
     return Response(status=200)
 
 
-@swagger_auto_schema(tags=['auth'], method='post', )
+@swagger_auto_schema(tags=['auth'], method='post')
 @api_view(['POST'])
 def validate_email(request):
     user = models.User.objects.get(pk=request.data['id'])
@@ -99,7 +100,7 @@ def logout(request):
     return Response(status=200)
 
 
-@swagger_auto_schema(tags=['auth'], method='post', )
+@swagger_auto_schema(tags=['auth'], method='post', request_body=Serializer(data={"email": ""}))
 @api_view(['POST'])
 def forgot_password(request):
     user = models.User.objects.filter(email=request.data['email']).first()
