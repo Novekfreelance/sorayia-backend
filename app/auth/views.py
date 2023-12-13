@@ -45,7 +45,7 @@ def login(request):
     return Response(status=status.HTTP_400_BAD_REQUEST)
 
 
-@swagger_auto_schema(tags=['auth'], method='post', )
+@swagger_auto_schema(tags=['auth'], method='post', request_body=serializers.UserCreationSerializer,)
 @api_view(['POST'])
 def register(request):
     user_creation_serializer = serializers.UserCreationSerializer(data=request.data)
