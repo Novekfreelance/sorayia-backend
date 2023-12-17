@@ -11,7 +11,6 @@ class UserSerializer(ModelSerializer):
             'first_name',
             'last_name',
             'email',
-            'phone',
             'type',
         )
 
@@ -24,7 +23,6 @@ class UserCreationSerializer(ModelSerializer):
             'last_name',
             'email',
             'password',
-            'phone',
         )
 
         optional_fields = ['type', ]
