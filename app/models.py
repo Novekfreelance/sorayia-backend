@@ -22,14 +22,14 @@ class User(AbstractUser):
     objects = managers.UserManager()
 
 
-class Bot(models.Model):
-    id = models.UUIDField(null=False, blank=False, primary_key=True, default=uuid.uuid4)
-    name = models.CharField(null=False, blank=False, max_length=30, default='')
-    user = models.ForeignKey('User', on_delete=models.CASCADE)
-    model = models.CharField(null=False, blank=False, max_length=20)
-    description = models.TextField(null=False, blank=False)
-    created_at = models.DateTimeField(null=False, blank=False, default=datetime.datetime.utcnow())
-    update_at = models.DateTimeField(null=True, blank=True)
+# class Bot(models.Model):
+#     id = models.UUIDField(null=False, blank=False, primary_key=True, default=uuid.uuid4)
+#     name = models.CharField(null=False, blank=False, max_length=30, default='')
+#     user = models.ForeignKey('User', on_delete=models.CASCADE)
+#     model = models.CharField(null=False, blank=False, max_length=20)
+#     description = models.TextField(null=False, blank=False)
+#     created_at = models.DateTimeField(null=False, blank=False, default=datetime.datetime.utcnow())
+#     update_at = models.DateTimeField(null=True, blank=True)
 
 
 class Chat(models.Model):
@@ -39,11 +39,11 @@ class Chat(models.Model):
 class Message(models.Model):
     pass
 
-
-class Folder(models.Model):
-    id = models.UUIDField(null=False, blank=False, primary_key=True, default=uuid.uuid4)
-    name = models.CharField(max_length=100, null=False, blank=False, default='')
-    user = models.ForeignKey('User', on_delete=models.CASCADE)
+#
+# class Folder(models.Model):
+#     id = models.UUIDField(null=False, blank=False, primary_key=True, default=uuid.uuid4)
+#     name = models.CharField(max_length=100, null=False, blank=False, default='')
+#     user = models.ForeignKey('User', on_delete=models.CASCADE)
 
 
 class FolderBot(models.Model):
