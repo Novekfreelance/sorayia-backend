@@ -40,15 +40,15 @@ class Message(models.Model):
     pass
 
 
-class Folder(models.Model):
-    id = models.UUIDField(null=False, blank=False, primary_key=True, default=uuid.uuid4)
-    name = models.CharField(max_length=100, null=False, blank=False, default='')
-    user = models.ForeignKey('User', on_delete=models.CASCADE)
-
-
-class FolderBot(models.Model):
-    pass
-
-
-class Files(models.Model):
-    pass
+# class Folder(models.Model):
+#     id = models.UUIDField(null=False, blank=False, primary_key=True, default=uuid.uuid4)
+#     name = models.CharField(max_length=100, null=False, blank=False, default='')
+#     user = models.ForeignKey('User', on_delete=models.CASCADE)
+#
+#
+# class FolderBot(models.Model):
+#     pass
+#
+#
+# class Files(models.Model):
+#     pass
