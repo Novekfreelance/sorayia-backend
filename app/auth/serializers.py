@@ -4,12 +4,10 @@ from rest_framework import serializers
 
 
 class UserSerializer(ModelSerializer):
-
     class Meta:
         model = models.User
         fields = (
-            'first_name',
-            'last_name',
+            'username',
             'email',
             'type',
         )
@@ -19,11 +17,16 @@ class UserCreationSerializer(ModelSerializer):
     class Meta:
         model = models.User
         fields = (
-            'first_name',
-            'last_name',
+            'username',
             'email',
             'password',
         )
+
+        extra_kwargs = {
+            'username': {'required': True, 'allow_blank': False},
+            'email': {'required': True, 'allow_blank': False},
+            'password': {'required': True, 'allow_blank': False},
+        }
 
         optional_fields = ['type', ]
 
@@ -41,3 +44,8 @@ class UserAuth(serializers.ModelSerializer):
             'email',
             'password'
         )
+
+        extra_kwargs = {
+            'email': {'required': True, 'allow_blank': False},
+            'password': {'required': True, 'allow_blank': False},
+        }
