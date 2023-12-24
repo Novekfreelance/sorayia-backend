@@ -26,6 +26,8 @@ psycopg2-binary = "^2.9.9"
 gunicorn = "^21.2.0"
 drf-yasg = "^1.21.7"
 whitenoise = {extras = ["brotli"], version = "^6.6.0"}
+i = "^2.1.0"
+django-cors-headers = "^4.3.1"
 
 
 [build-system]
