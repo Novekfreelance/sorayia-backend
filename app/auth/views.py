@@ -72,6 +72,8 @@ def register(request):
 
             mail = EmailMessage(mail_subject, message, to=[email])
 
+            mail.content_subtype = 'html'
+
             mail.send()
         except:
             exceptions.APIException()
