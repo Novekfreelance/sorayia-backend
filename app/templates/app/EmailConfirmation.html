@@ -72,14 +72,14 @@
     </h3>
 
     <p>
-        Salut <span>{{ user.first_name }} {{ user.last_name }}</span>. Nous vous remercion d'avoir choisi Sorayia pour
-        vos utilisations de chabot.
+        Salut <span>{{ user.name }}</span>. Nous vous remercions d'avoir choisi Sorayia pour
+        une utilisation intuitive et innovante des agents intélligents.
         Veuillez bien valider votre email en cliquant sur le bouton ci-dessous pour commencer à exploiter le monde merveilleux des chatbots
     </p>
 
     <p style="text-align: center;">
 
-            <a class="btn-primary" href="{{ domain }}/admin/organisations/s1/1"><span class="blanc">Valider</span></a>
+            <a class="btn-primary" href="{{ domain }}/validate_email/{{ uid }}"><span class="blanc">Valider</span></a>
 
     </p>
 

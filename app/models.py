@@ -22,33 +22,42 @@ class User(AbstractUser):
     objects = managers.UserManager()
 
 
+class Folder(models.Model):
+    id = models.UUIDField(null=False, blank=False, primary_key=True, default=uuid.uuid4)
+    name = models.CharField(max_length=100, null=False, blank=False, default='')
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+
+
 class Bot(models.Model):
     id = models.UUIDField(null=False, blank=False, primary_key=True, default=uuid.uuid4)
     name = models.CharField(null=False, blank=False, max_length=30, default='')
-    user = models.ForeignKey('User', on_delete=models.CASCADE)
-    model = models.CharField(null=False, blank=False, max_length=20)
+    avatar = models.TextField(null=False, blank=False, default='')
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    model = models.CharField(null=False, blank=False, max_length=50)
     description = models.TextField(null=False, blank=False)
     created_at = models.DateTimeField(null=False, blank=False, default=datetime.datetime.utcnow())
     update_at = models.DateTimeField(null=True, blank=True)
+    folder = models.ManyToManyField(Folder)
 
 
 class Chat(models.Model):
-    pass
+    id = models.UUIDField(null=False, blank=False, primary_key=True, default=uuid.uuid4)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    bot = models.ForeignKey(Bot, on_delete=models.CASCADE)
 
 
 class Message(models.Model):
-    pass
+    id = models.UUIDField(null=False, blank=False, primary_key=True, default=uuid.uuid4)
+    chat = models.ForeignKey(Chat, on_delete=models.CASCADE)
+    model = models.CharField(max_length=10, null=False, blank=False, default='system')
+    content = models.TextField(null=False, blank=False, default='')
+    type = models.CharField(max_length=10,null=False, blank=False, default='text')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
+    bot = models.ForeignKey(Bot, on_delete=models.CASCADE, null=True)
 
 
-# class Folder(models.Model):
-#     id = models.UUIDField(null=False, blank=False, primary_key=True, default=uuid.uuid4)
-#     name = models.CharField(max_length=100, null=False, blank=False, default='')
-#     user = models.ForeignKey('User', on_delete=models.CASCADE)
-#
-#
-# class FolderBot(models.Model):
-#     pass
-#
-#
-# class Files(models.Model):
-#     pass
+class File(models.Model):
+    id = models.UUIDField(null=False, blank=False, primary_key=True, default=uuid.uuid4)
+    name = models.CharField(max_length=100, null=False, blank=False,)
+    folder = models.ForeignKey(Folder, on_delete=models.CASCADE)
+    url = models.TextField(null=False, blank=False)

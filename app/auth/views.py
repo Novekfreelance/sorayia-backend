@@ -3,7 +3,7 @@ from django.core.mail import EmailMessage
 from django.forms import model_to_dict
 from django.shortcuts import render
 from django.template.loader import render_to_string
-from django.utils.http import urlsafe_base64_encode
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from rest_framework.response import Response
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
 from rest_framework.authentication import TokenAuthentication
@@ -54,7 +54,7 @@ def register(request):
         user_creation_serializer.validated_data["password"] = make_password(
             user_creation_serializer.validated_data.get("password"))
         user = user_creation_serializer.save()
-        current_site = ''
+        current_site = 'https://sorayia-front-end.onrender.com'
 
         try:
             message = render_to_string(
@@ -83,7 +83,8 @@ def register(request):
 @swagger_auto_schema(tags=['auth'], method='post')
 @api_view(['POST'])
 def validate_email(request):
-    user = models.User.objects.get(pk=request.data['id'])
+    user_id = urlsafe_base64_decode(request.data['id'])
+    user = models.User.objects.get(pk=user_id)
     user.__dict__.update({'is_active': True})
     user.save()
 
