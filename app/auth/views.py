@@ -1,3 +1,5 @@
+import datetime
+
 from django.contrib.auth.hashers import make_password, check_password
 from django.core.mail import EmailMessage
 from django.forms import model_to_dict
@@ -32,6 +34,7 @@ def login(request):
             return Response(data={'error': 'email or password incorrect'}, status=400)
         if check_password(request.data['password'], user.password):
             if user.is_active:
+                user.__dict__.update({'last_login': datetime.datetime.utcnow()})
                 token, _ = Token.objects.get_or_create(user=user)
                 auth_data = {
                     'token': token.key,
@@ -93,12 +96,12 @@ def validate_email(request):
         try:
             user = models.User.objects.get(pk=user_id)
         except:
-            return Response(data='user not found', status=status.HTTP_404_NOT_FOUND)
+            return Response(data={'data': "user not found"}, status=status.HTTP_404_NOT_FOUND)
         user.__dict__.update({'is_active': True})
         user.save()
         return Response(status=200)
 
-    return Response(status=400)
+    return Response(data={'data': 'code incorrect'}, status=400)
 
 
 @swagger_auto_schema(tags=['auth'], method='post')
