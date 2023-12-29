@@ -57,7 +57,7 @@ def register(request):
         user = user_creation_serializer.save()
 
         code = helpers.generated_code()
-        request.session[user.pk] = code
+        request.session[str(user.pk)] = code
 
         try:
             message = render_to_string(
@@ -89,8 +89,11 @@ def register(request):
 @api_view(['POST'])
 def validate_email(request):
     user_id = request.data['id']
-    if request.session.get(user_id) == request.data['code']:
-        user = models.User.objects.get(pk=user_id)
+    if request.session.get(str(user_id)) == request.data['code']:
+        try:
+            user = models.User.objects.get(pk=user_id)
+        except:
+            return Response(data='user not found', status=status.HTTP_404_NOT_FOUND)
         user.__dict__.update({'is_active': True})
         user.save()
         return Response(status=200)
