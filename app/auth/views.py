@@ -14,6 +14,7 @@ from app import models
 from rest_framework.authtoken.models import Token
 from rest_framework import status, exceptions
 from rest_framework.serializers import Serializer
+from app import helpers
 
 
 # Create your views here.
@@ -54,15 +55,17 @@ def register(request):
         user_creation_serializer.validated_data["password"] = make_password(
             user_creation_serializer.validated_data.get("password"))
         user = user_creation_serializer.save()
-        current_site = 'https://sorayia-front-end.onrender.com'
+
+        code = helpers.generated_code()
+        request.session[user.pk] = code
 
         try:
             message = render_to_string(
                 "app/EmailConfirmation.html",
                 {
                     "user": user,
-                    "domain": current_site,
-                    "uid": urlsafe_base64_encode(user.pk.bytes)
+                    "part1": code[:3],
+                    "part2": code[3:],
                 }
             )
 
@@ -79,18 +82,20 @@ def register(request):
             exceptions.APIException()
     else:
         return Response(user_creation_serializer.errors, status=400)
-    return Response(status=200)
+    return Response(data=model_to_dict(user), status=200)
 
 
 @swagger_auto_schema(tags=['auth'], method='post')
 @api_view(['POST'])
 def validate_email(request):
-    user_id = urlsafe_base64_decode(request.data['id'])
-    user = models.User.objects.get(pk=user_id)
-    user.__dict__.update({'is_active': True})
-    user.save()
+    user_id = request.data['id']
+    if request.session.get(user_id) == request.data['code']:
+        user = models.User.objects.get(pk=user_id)
+        user.__dict__.update({'is_active': True})
+        user.save()
+        return Response(status=200)
 
-    return Response(status=200)
+    return Response(status=400)
 
 
 @swagger_auto_schema(tags=['auth'], method='post')
