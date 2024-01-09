@@ -21,5 +21,12 @@ urlpatterns = [
 
     # Bot
     path('create_bot', bot_views.create_bot, name='create-bot'),
-    path('update_bot/{bot_id}', bot_views.update_bot, name='update-bot')
+    path('update_bot/{bot_id}', bot_views.update_bot, name='update-bot'),
+
+    # Converse
+    path('create_chat', bot_views.create_chat, name='create-chat'),
+    path('get_chat', bot_views.get_chat, name='get-chat'),
+    path('send_message', bot_views.send_message, name='send-message')
+
+
 ]

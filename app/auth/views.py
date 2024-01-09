@@ -85,7 +85,7 @@ def register(request):
             exceptions.APIException()
     else:
         return Response(user_creation_serializer.errors, status=400)
-    return Response(data=model_to_dict(user), status=200)
+    return Response(data=model_to_dict(user, exclude=('password',)), status=200)
 
 
 @swagger_auto_schema(tags=['auth'], method='post')
