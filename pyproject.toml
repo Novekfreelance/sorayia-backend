@@ -28,6 +28,8 @@ drf-yasg = "^1.21.7"
 whitenoise = {extras = ["brotli"], version = "^6.6.0"}
 i = "^2.1.0"
 django-cors-headers = "^4.3.1"
+firebase-admin = "^6.3.0"
+langchain = ">=0.0.327,<0.1.0"
 
 
 [build-system]
