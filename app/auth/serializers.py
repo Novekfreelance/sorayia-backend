@@ -49,3 +49,9 @@ class UserAuth(serializers.ModelSerializer):
             'email': {'required': True, 'allow_blank': False},
             'password': {'required': True, 'allow_blank': False},
         }
+
+
+class ResetPasswordSerializer(serializers.Serializer):
+    id = serializers.UUIDField(required=True)
+    password = serializers.CharField(max_length=128, write_only=True)
+    new_password = serializers.CharField(max_length=128, write_only=True)

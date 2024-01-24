@@ -9,13 +9,13 @@ class FolderSerializer(serializers.ModelSerializer):
     class Meta:
         fields = (
             'name',
-            'user',
+            # 'user'
         )
         model = models.Folder
 
         extra_kwargs = {
             'name': {'required': True, },
-            'user': {'required': True, }
+            # 'user': {'required': True, }
         }
 
 
@@ -85,7 +85,6 @@ class BotCreationSerializer(serializers.ModelSerializer):
             'file',
             'model',
             'description',
-            'user'
         )
 
         extra_kwargs = {
@@ -93,7 +92,6 @@ class BotCreationSerializer(serializers.ModelSerializer):
             'file': {'required': True, },
             'model': {'required': True, },
             'description': {'required': True},
-            'user': {'required': True}
         }
 
     def validate(self, data):
@@ -102,7 +100,7 @@ class BotCreationSerializer(serializers.ModelSerializer):
 
 
 class BotUpdateSerializer(serializers.ModelSerializer):
-    file = serializers.FileField(write_only=True)
+    file = serializers.FileField(write_only=True, required=False)
 
     class Meta:
         model = models.Bot
@@ -114,20 +112,19 @@ class BotUpdateSerializer(serializers.ModelSerializer):
         )
 
         extra_kwargs = {
-            'name': {'required': True, },
+            'name': {'required': False, },
             'file': {'required': False, },
-            'model': {'required': True, },
-            'description': {'required': True},
+            'model': {'required': False, },
+            'description': {'required': False},
         }
 
 
 class ChatSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Chat
-        fields = ('user', 'bot')
+        fields = ('bot',)
 
         extra_kwargs = {
-            'user': {'required': True, },
             'bot': {'required': True, },
         }
 
@@ -144,18 +141,24 @@ class MessageSerializer(serializers.ModelSerializer):
             'model',
             'content',
             'type',
-            'user',
             'bot'
         )
 
 
 class MessageCreationSerializer(MessageSerializer):
     class Meta:
+        model = models.Message
+        fields = (
+            'chat',
+            'model',
+            'content',
+            'type',
+            'bot'
+        )
         extra_kwargs = {
             'chat': {'required': True, },
             'model': {'required': True, },
             'content': {'required': True},
             'type': {'required': True},
-            'user': {'required': True},
             'bot': {'required': True}
         }

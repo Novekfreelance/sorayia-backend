@@ -26,6 +26,8 @@ class Folder(models.Model):
     id = models.UUIDField(null=False, blank=False, primary_key=True, default=uuid.uuid4)
     name = models.CharField(max_length=100, null=False, blank=False, default='')
     user = models.ForeignKey(User, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(null=False, blank=False, default=datetime.datetime.utcnow())
+    update_at = models.DateTimeField(null=True, blank=True)
 
 
 class Bot(models.Model):
@@ -44,6 +46,8 @@ class Chat(models.Model):
     id = models.UUIDField(null=False, blank=False, primary_key=True, default=uuid.uuid4)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     bot = models.ForeignKey(Bot, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(null=False, blank=False, default=datetime.datetime.utcnow())
+    update_at = models.DateTimeField(null=True, blank=True)
 
 
 class Message(models.Model):
@@ -54,6 +58,8 @@ class Message(models.Model):
     type = models.CharField(max_length=10,null=False, blank=False, default='text')
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
     bot = models.ForeignKey(Bot, on_delete=models.CASCADE, null=True)
+    created_at = models.DateTimeField(null=False, blank=False, default=datetime.datetime.utcnow())
+    update_at = models.DateTimeField(null=True, blank=True)
 
 
 class File(models.Model):
@@ -61,3 +67,5 @@ class File(models.Model):
     name = models.CharField(max_length=100, null=False, blank=False,)
     folder = models.ForeignKey(Folder, on_delete=models.CASCADE)
     url = models.TextField(null=False, blank=False)
+    created_at = models.DateTimeField(null=False, blank=False, default=datetime.datetime.utcnow())
+    update_at = models.DateTimeField(null=True, blank=True)

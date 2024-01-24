@@ -1,5 +1,10 @@
 import random
+import requests
+
+from django.core.files.uploadedfile import InMemoryUploadedFile
 from firebase_admin import credentials, initialize_app, storage
+import os
+import datetime
 
 from langchain import OpenAI, ConversationChain, LLMChain, PromptTemplate
 from langchain.memory import ConversationBufferMemory
@@ -13,15 +18,26 @@ from langchain.prompts.chat import (
     HumanMessagePromptTemplate,
 )
 
-def upload_file(file):
-    cred = credentials.Certificate("templates/services.json")
-    initialize_app(cred, {'storageBucket': 'sorayia-d28db.appspot.com'})
 
-    bucket = storage.bucket()
-    blob = bucket.blob(file.name)
-    blob.upload_from_filename(file.read())
-    blob.make_public()
-    return blob.public_url
+def upload_file(file, folder):
+    print(file.name)
+    # json_file_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'services.json')
+    cred = credentials.Certificate("services.json")
+    initialize_app(cred, {'storageBucket': 'sorayia-d28db.appspot.com'})
+    # Client = storage.storage.Client.from_service_account_info(json_file_path)
+    bucket = storage.bucket('sorayia-d28db.appspot.com')
+    blob_name = os.path.join(folder, file.name)
+    blob = bucket.blob(blob_name)
+    url = blob.generate_signed_url(
+        expiration=datetime.timedelta(minutes=20),
+        method="PUT",
+        version='v4',
+    )
+    print(url)
+    final_url = f"https://storage.googleapis.com/sorayia-d28db.appspot.com/{folder}/{file.name}"
+    response = requests.put(url, files={"file": (file.name, file.read(), file.content_type)})
+    print(response)
+    return final_url
 
 
 def delete_file_remote(filename):
@@ -56,4 +72,3 @@ def send_gpt(context, model, human_prompt, human_input, previous_messages):
     chain = LLMChain(llm=chat, prompt=chat_prompt, memory=memory, verbose=True)
     response = chain.run(human_input)
     return response
-

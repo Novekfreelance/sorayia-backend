@@ -13,6 +13,7 @@ import os
 from pathlib import Path
 import dj_database_url
 import drf_yasg
+import decouple
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -27,6 +28,7 @@ SECRET_KEY = os.environ.get('SECRET_KEY', default='your secret key')
 DEBUG = "RENDER" in os.environ
 # DEBUG = True
 
+os.environ['OPENAI_API_KEY'] = decouple.config('OPENAI_API_KEY')
 
 ALLOWED_HOSTS = []
 
@@ -44,6 +46,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+
     'app',
     'bot',
 
@@ -65,9 +68,10 @@ MIDDLEWARE = [
     'whitenoise.middleware.WhiteNoiseMiddleware'
 ]
 
+
 CORS_ALLOWED_ORIGINS = [
     'http://localhost:3000',
-
+    'https://sorayia-front-end.onrender.com'
 ]
 
 # SWAGGER_SETTINGS = {
@@ -83,7 +87,6 @@ CORS_ALLOWED_ORIGINS = [
 SILENCED_SYSTEM_CHECKS = ["auth.E003", "auth.W004"]
 
 REST_FRAMEWORK = {
-
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework.authentication.TokenAuthentication',
     ),
@@ -117,8 +120,8 @@ WSGI_APPLICATION = 'SorayiaAPI.wsgi.application'
 #         'ENGINE': 'django.db.backends.mysql',
 #         'NAME': 'sorayi4_b4t',
 #         'USER': 'root',
-#         'PASSWORD': 'dona',
-#         'HOST': 'localhost',
+#         'PASSWORD': '',
+#         'HOST': '127.0.0.1',
 #         'PORT': '3306'
 #     }
 # }
@@ -144,11 +147,12 @@ DATABASES = {
 
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = os.environ.get('EMAIL_HOST')
-EMAIL_USE_TLS = 'EMAIL_USE_TLS' in os.environ
-EMAIL_PORT = os.environ.get('EMAIL_PORT')
-EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER')
-EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD')
+EMAIL_HOST = os.environ.get('EMAIL_HOST', 'smtp.gmail.com')
+EMAIL_USE_TLS = True
+EMAIL_PORT = os.environ.get('EMAIL_PORT', 587)
+EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', 'novekfreelance.team@gmail.com')
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', 'itojahsnskvuycdr')
+
 
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
