@@ -13,6 +13,7 @@ import os
 from pathlib import Path
 import dj_database_url
 import drf_yasg
+
 import decouple
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
