@@ -31,6 +31,8 @@ DEBUG = "RENDER" in os.environ
 
 os.environ['OPENAI_API_KEY'] = decouple.config('OPENAI_API_KEY')
 
+OPENAI_API_KEY = decouple.config('OPENAI_API_KEY')
+
 ALLOWED_HOSTS = []
 
 RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')

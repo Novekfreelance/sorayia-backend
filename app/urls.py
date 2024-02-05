@@ -13,8 +13,8 @@ urlpatterns = [
 
     # File
     path('create_folder', bot_views.create_folder, name='create-folder'),
-    path('update_foler/{folder_id}', bot_views.update_folder, name='update-folder'),
-    path('delete_folder/{folder_id}', bot_views.delete_folder, name='delete-folder'),
+    path('update_folder', bot_views.update_folder, name='update-folder'),
+    path('delete_folder', bot_views.delete_folder, name='delete-folder'),
     path('get_folders', bot_views.get_folders, name='get-folders'),
 
     path('create_file', bot_views.create_file, name='create-file'),
@@ -24,6 +24,7 @@ urlpatterns = [
     # Bot
     path('create_bot', bot_views.create_bot, name='create-bot'),
     path('update_bot/<bot_id>', bot_views.update_bot, name='update-bot'),
+    path('get_bots', bot_views.get_bots, name='get-bots'),
 
     # Converse
     path('create_chat', bot_views.create_chat, name='create-chat'),

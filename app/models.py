@@ -33,13 +33,14 @@ class Folder(models.Model):
 class Bot(models.Model):
     id = models.UUIDField(null=False, blank=False, primary_key=True, default=uuid.uuid4)
     name = models.CharField(null=False, blank=False, max_length=30, default='')
-    avatar = models.TextField(null=False, blank=False, default='')
+    avatar = models.TextField(null=True, blank=True, default='')
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     model = models.CharField(null=False, blank=False, max_length=50)
-    description = models.TextField(null=False, blank=False)
+    description = models.TextField(null=False, blank=False, default='')
+    split_url = models.TextField(null=True, blank=True)
     created_at = models.DateTimeField(null=False, blank=False, default=datetime.datetime.utcnow())
     update_at = models.DateTimeField(null=True, blank=True)
-    folder = models.ManyToManyField(Folder)
+    folders = models.ManyToManyField(Folder)
 
 
 class Chat(models.Model):
@@ -67,5 +68,6 @@ class File(models.Model):
     name = models.CharField(max_length=100, null=False, blank=False,)
     folder = models.ForeignKey(Folder, on_delete=models.CASCADE)
     url = models.TextField(null=False, blank=False)
+    type = models.TextField(null=True, blank=True)
     created_at = models.DateTimeField(null=False, blank=False, default=datetime.datetime.utcnow())
     update_at = models.DateTimeField(null=True, blank=True)

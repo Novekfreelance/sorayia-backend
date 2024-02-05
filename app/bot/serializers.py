@@ -76,20 +76,20 @@ class BotSerializer(serializers.ModelSerializer):
 
 
 class BotCreationSerializer(serializers.ModelSerializer):
-    file = serializers.FileField(write_only=True)
+    # file = serializers.FileField(write_only=True)
 
     class Meta:
         model = models.Bot
         fields = (
             'name',
-            'file',
+            # 'file',
             'model',
             'description',
         )
 
         extra_kwargs = {
             'name': {'required': True, },
-            'file': {'required': True, },
+
             'model': {'required': True, },
             'description': {'required': True},
         }

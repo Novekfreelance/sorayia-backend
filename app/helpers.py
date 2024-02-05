@@ -1,59 +1,133 @@
+import io
 import random
-import requests
+import string
 
+import requests
+import ast
 from django.core.files.uploadedfile import InMemoryUploadedFile
+
 from firebase_admin import credentials, initialize_app, storage
 import os
 import datetime
+import firebase_admin
 
 from langchain import OpenAI, ConversationChain, LLMChain, PromptTemplate
 from langchain.memory import ConversationBufferMemory
 from langchain.memory import ConversationBufferWindowMemory
 from langchain.chat_models import ChatOpenAI
-from langchain.chains import LLMChain
+from langchain.chains import LLMChain, ConversationalRetrievalChain
 from langchain.prompts.chat import (
     ChatPromptTemplate,
     MessagesPlaceholder,
     SystemMessagePromptTemplate,
     HumanMessagePromptTemplate,
 )
+from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain_community.document_loaders import PyPDFLoader
+from langchain_community.embeddings import OpenAIEmbeddings
+from langchain_community.vectorstores.chroma import Chroma
+from langchain_core.output_parsers import StrOutputParser
+from langchain_core.runnables import RunnablePassthrough
+
+from SorayiaAPI import settings
 
 
-def upload_file(file, folder):
-    print(file.name)
+def generate_random_string(length):
+    characters = string.ascii_letters + string.digits
+    return ''.join(random.choice(characters) for _ in range(length))
+
+
+def upload_file(file, folder, prevent_content_type=False):
+    # print(file.name)
+    # print(file.content_type)
     # json_file_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'services.json')
-    cred = credentials.Certificate("services.json")
-    initialize_app(cred, {'storageBucket': 'sorayia-d28db.appspot.com'})
+    if not firebase_admin._apps:
+        cred = credentials.Certificate("services.json")
+        initialize_app(cred, {'storageBucket': 'sorayia-d28db.appspot.com'})
     # Client = storage.storage.Client.from_service_account_info(json_file_path)
     bucket = storage.bucket('sorayia-d28db.appspot.com')
-    blob_name = os.path.join(folder, file.name)
+    random_name = generate_random_string(10)
+    extension = file.name.split('.')[1] if prevent_content_type is False else 'txt'
+    libelle = f"{random_name}.{extension}"
+    blob_name = os.path.join(folder, libelle)
     blob = bucket.blob(blob_name)
     url = blob.generate_signed_url(
         expiration=datetime.timedelta(minutes=20),
         method="PUT",
         version='v4',
+        # content_type="application/octet-stream",
+        content_type='text/plain' if prevent_content_type else file.content_type
     )
     print(url)
-    final_url = f"https://storage.googleapis.com/sorayia-d28db.appspot.com/{folder}/{file.name}"
-    response = requests.put(url, files={"file": (file.name, file.read(), file.content_type)})
+    file.seek(0)
+    final_url = f"https://storage.googleapis.com/sorayia-d28db.appspot.com/{folder}/{libelle}"
+    response = requests.put(url, headers={'Content-Type': 'text/plain' if prevent_content_type else file.content_type},
+                           data=file.read())
     print(response)
-    return final_url
+    return {"public_url": final_url, "type": extension}
 
 
-def delete_file_remote(filename):
-    if filename is not None:
-        bucket = storage.bucket()
-        blob = bucket.blob(filename)
-        blob.delete()
+def make_split_doc(files):
+    documents = []
+    for file in files:
+        if file.type == 'pdf':
+            loader = PyPDFLoader(file.url)
+            documents.extend(loader.load_and_split())
+    text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
+    splits: list = text_splitter.split_documents(documents)
+    # print(splits)
+    memory_file = io.StringIO()
+    memory_file.write(str(splits))
+    # response = upload_file(memory_file, "split_docs", True)
+    return splits
+
+
+def load_list_from_url(url):
+    try:
+        response = requests.get(url)
+        response.raise_for_status()  # Raise an HTTPError for bad responses
+        content = response.text
+        print('gobe')
+        print(type(content))
+        # Assuming the content of the file is a valid Python list literal
+        data_list = ast.literal_eval(content)
+        print(data_list)
+        return data_list
+    except requests.exceptions.RequestException as e:
+        print(f"Error loading data from URL: {e}")
+        return None
 
 
 def generated_code():
     return str(random.randint(100000, 999999))
 
 
-def send_gpt(context, model, human_prompt, human_input, previous_messages):
-    chat = ChatOpenAI(model_name=model, temperature=0.7, max_tokens=500)
+def format_docs(docs):
+    return "\n\n".join(doc.page_content for doc in docs)
 
+
+def send_gpt(context, model, human_prompt, human_input, previous_messages, splits=None):
+    # rag_prompt_template = """
+    # Tu est un assistant utile. Sers toi des informations ci-dessous pour répondre aux question.
+    # {context}
+    #
+    # Voilà la quetion de l'utilistateur : {user_input}
+    #
+    # """
+    retriever = None
+    # print(splits)
+    # rag_prompt = PromptTemplate.from_template(rag_prompt_template)
+    print(type(splits))
+    if splits is not None:
+        # splits = list()
+        vectorstore = Chroma.from_documents(documents=splits,
+                                        embedding=OpenAIEmbeddings(openai_api_key=settings.OPENAI_API_KEY))
+
+        # Retrieve and generate using the relevant snippets of the blog.
+        retriever = vectorstore.as_retriever()
+
+    chat = ChatOpenAI(model_name=model, temperature=0.7, max_tokens=500)
+    print(context)
     system_message_prompt = SystemMessagePromptTemplate.from_template(context)
     human_message_prompt = HumanMessagePromptTemplate.from_template(human_prompt)
     message_placeholder = MessagesPlaceholder(variable_name="chat_history")
@@ -69,6 +143,28 @@ def send_gpt(context, model, human_prompt, human_input, previous_messages):
         else:
             memory.chat_memory.add_ai_message(msg["message"])
 
-    chain = LLMChain(llm=chat, prompt=chat_prompt, memory=memory, verbose=True)
+    # rag_chain = (
+    #         {"context": retriever | format_docs, "user_input": RunnablePassthrough()}
+    #         # {"context": retriever | format_docs, "question": ""}
+    #         | chat_prompt
+    #         | chat
+    #         | StrOutputParser()
+    # )
+    if retriever is None:
+        chain = LLMChain(llm=chat, prompt=chat_prompt, memory=memory, verbose=True)
+    else:
+        # chain = (
+        #         {"context": retriever | format_docs, "user_input": RunnablePassthrough(), "memory": memory}
+        #         # {"context": retriever | format_docs, "question": ""}
+        #         | chat_prompt
+        #         | chat
+        #         | StrOutputParser()
+        # )
+        question_generator_chain = LLMChain(llm=chat, prompt=chat_prompt, memory=memory, verbose=True,)
+        chain = ConversationalRetrievalChain(
+            retriever=retriever,
+            question_generator=question_generator_chain
+        )
+        # chain = LLMChain(llm=chat, prompt=chat_prompt, memory=memory, verbose=True, retriever=retriever | format_docs)
     response = chain.run(human_input)
     return response

@@ -23,20 +23,26 @@ def create_folder(request):
     folder_serializer = serializers.FolderSerializer(data=request.data)
     if folder_serializer.is_valid():
         folder = folder_serializer.save(user=request.user)
+        folder_response = model_to_dict(folder, exclude=('user',))
+        folder_response['user'] = model_to_dict(folder.user, exclude=('password',))
     else:
         return Response(data=folder_serializer.errors, status=400)
-    return Response(data=folder, status=200)
+    return Response(data=folder_response, status=200)
 
 
 @swagger_auto_schema(tags=['file'], method='post')
 @api_view(['POST'])
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
-def update_folder(request, folder_id):
-    folder = models.Folder.objects.get(pk=folder_id)
+def update_folder(request):
+    try:
+        folder_id = request.data.get('folder_id')
+        folder = models.Folder.objects.get(pk=folder_id)
+    except:
+        return Response(data={"error": "Folder not found"}, status=404)
     folder_serializer = serializers.FolderSerializer(data=request.data)
     if folder_serializer.is_valid():
-        folder=folder_serializer.update(folder, validated_data=folder_serializer.validated_data)
+        folder = folder_serializer.update(folder, validated_data=folder_serializer.validated_data)
     else:
         return Response(data=folder_serializer.errors, status=400)
     return Response(data=model_to_dict(folder), status=200)
@@ -46,8 +52,9 @@ def update_folder(request, folder_id):
 @api_view(['POST'])
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
-def delete_folder(request, folder_id):
+def delete_folder(request):
     try:
+        folder_id = request.data.get('folder_id')
         folder = models.Folder.objects.get(pk=folder_id)
         folder.delete()
     except:
@@ -74,7 +81,7 @@ def create_file(request):
         folder = models.Folder.objects.get(pk=request.data['folder'])
         file_uploaded = helpers.upload_file(request.data['file'], folder.name)
         file_serializer.validated_data.pop('file')
-        file = file_serializer.save(url=file_uploaded)
+        file = file_serializer.save(url=file_uploaded.get('public_url'), type=file_uploaded.get('type'))
     else:
         return Response(data=file_serializer.errors, status=400)
 
@@ -96,8 +103,8 @@ def update_file(request, file_id):
         file_serializer.update(file, validated_data=file_serializer.validated_data)
         if request.data['file'] is not None:
             helpers.delete_file_remote(file.url)
-            file_uploaded = helpers.upload_file(request.data['file'])
-            file.__dict__.update({'url': file_uploaded})
+            file_uploaded = helpers.upload_file(request.data['file'], file.folder.name)
+            file.__dict__.update({'url': file_uploaded.get('public_url'), 'type': file_uploaded.get('type')})
             file.save()
     else:
         return Response(data=file_serializer.errors, status=400)
@@ -126,13 +133,55 @@ def create_bot(request):
     request_data = request.data
     bot_serializer = serializers.BotCreationSerializer(data=request_data)
     if bot_serializer.is_valid():
-        file_uploaded = helpers.upload_file(request.data['file'], "avatar")
-        bot_serializer.validated_data.pop('file')
-        bot = bot_serializer.save(avatar=file_uploaded, user=request.user)
+        # file_uploaded = helpers.upload_file(request.data['file'], "avatar")
+        # bot_serializer.validated_data.pop('file')
+        bot = bot_serializer.save(user=request.user)
+
+        folders_id = request.data['folders']
+        print(folders_id)
+        bot.folders.add(*folders_id)
+
+        files_list = []
+        for folder_id in folders_id:
+            folder = models.Folder.objects.prefetch_related('file_set').get(pk=folder_id)
+            files_list.extend(folder.file_set.all())
+        response = helpers.make_split_doc(files_list)
+        print(response)
+
+        bot.__dict__.update({'split_url': response.get('public_url', None)})
+        bot.save()
+        bot_response = model_to_dict(bot, exclude=('folders',))
+        bot_response['folders'] = [model_to_dict(folder_object) for folder_object in bot.folders.all()]
     else:
         return Response(data=bot_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    return Response(data=model_to_dict(bot), status=status.HTTP_200_OK)
+    return Response(data=bot_response, status=status.HTTP_200_OK)
+
+
+@swagger_auto_schema(tags=['bot'], method='get')
+@api_view(['GET'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def get_bots(request):
+    bots = models.Bot.objects.filter(user=request.user)
+    bots_all = []
+    for bot in bots:
+        bot_response = model_to_dict(bot, exclude=('folders',))
+        bot_response['folders'] = [model_to_dict(folder_object) for folder_object in bot.folders.all()]
+        bots_all.append(bot_response)
+    return Response(data={"data": bots_all}, status=200)
+
+
+@api_view(['POST'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def associate_folder(request):
+    folders_id = request.data['folders']
+    folders_bot = models.Folder.objects.filter()
+    files_list = []
+    for folder_id in folders_id:
+        folder = models.Folder.objects.prefetch_related('file_set').get(pk=folder_id)
+        files_list.extend(folder.file_set.all())
 
 
 @swagger_auto_schema(tags=['bot'], method='put')
@@ -197,6 +246,7 @@ def get_chat(request):
 def send_message(request):
     message_serializer = serializers.MessageCreationSerializer(data=request.data)
     bot = models.Bot.objects.get(pk=request.data['bot'])
+    print(bot.description)
     if message_serializer.is_valid():
         message_serializer.save(user=request.user)
         previous_messages = []
@@ -204,12 +254,19 @@ def send_message(request):
         for message in previous_object:
             previous_messages.append({'type': message.model, 'message': message.content})
         print(previous_messages)
+        files_list = []
+        for folder in bot.folders.all():
+            # folder = models.Folder.objects.prefetch_related('file_set').get(pk=folder_id)
+            files_list.extend(folder.file_set.all())
+        response_splits = helpers.make_split_doc(files_list) if len(files_list) != 0 else None
+
         gpt_response = helpers.send_gpt(
             context=bot.description,
             model=bot.model,
-            human_prompt='{"read", "ty"}',
+            human_prompt='{"question": "chat_history"}',
             human_input=request.data['content'],
-            previous_messages=previous_messages
+            previous_messages=previous_messages,
+            splits=response_splits
         )
 
         gpt_message = models.Message.objects.create(
