@@ -1,4 +1,5 @@
 import io
+import pickle
 import random
 import string
 
@@ -10,7 +11,7 @@ from firebase_admin import credentials, initialize_app, storage
 import os
 import datetime
 import firebase_admin
-
+import tempfile
 from langchain import OpenAI, ConversationChain, LLMChain, PromptTemplate
 from langchain.memory import ConversationBufferMemory
 from langchain.memory import ConversationBufferWindowMemory
@@ -76,21 +77,21 @@ def make_split_doc(files):
     text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
     splits: list = text_splitter.split_documents(documents)
     # print(splits)
-    memory_file = io.StringIO()
-    memory_file.write(str(splits))
-    # response = upload_file(memory_file, "split_docs", True)
-    return splits
+    with tempfile.NamedTemporaryFile(delete=False, suffix='.txt') as tmp:
+        tmp.write(pickle.dumps(splits))
+        response = upload_file(tmp, "split_docs", True)
+    return response
 
 
 def load_list_from_url(url):
     try:
         response = requests.get(url)
         response.raise_for_status()  # Raise an HTTPError for bad responses
-        content = response.text
+        content = response.content
         print('gobe')
-        print(type(content))
+        print(type(pickle.loads(content)))
         # Assuming the content of the file is a valid Python list literal
-        data_list = ast.literal_eval(content)
+        data_list = pickle.loads(content)
         print(data_list)
         return data_list
     except requests.exceptions.RequestException as e:
@@ -153,18 +154,18 @@ def send_gpt(context, model, human_prompt, human_input, previous_messages, split
     if retriever is None:
         chain = LLMChain(llm=chat, prompt=chat_prompt, memory=memory, verbose=True)
     else:
-        # chain = (
-        #         {"context": retriever | format_docs, "user_input": RunnablePassthrough(), "memory": memory}
-        #         # {"context": retriever | format_docs, "question": ""}
-        #         | chat_prompt
-        #         | chat
-        #         | StrOutputParser()
-        # )
-        question_generator_chain = LLMChain(llm=chat, prompt=chat_prompt, memory=memory, verbose=True,)
-        chain = ConversationalRetrievalChain(
-            retriever=retriever,
-            question_generator=question_generator_chain
+        chain = (
+                {"context": retriever | format_docs, "user_input": RunnablePassthrough()}
+                # {"context": retriever | format_docs, "question": ""}
+                | chat_prompt
+                | chat
+                | StrOutputParser()
         )
+        # question_generator_chain = LLMChain(llm=chat, prompt=chat_prompt, memory=memory, verbose=True,)
+        # chain = ConversationalRetrievalChain(
+        #     retriever=retriever,
+        #     question_generator=question_generator_chain
+        # )
         # chain = LLMChain(llm=chat, prompt=chat_prompt, memory=memory, verbose=True, retriever=retriever | format_docs)
     response = chain.run(human_input)
     return response

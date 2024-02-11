@@ -258,7 +258,7 @@ def send_message(request):
         for folder in bot.folders.all():
             # folder = models.Folder.objects.prefetch_related('file_set').get(pk=folder_id)
             files_list.extend(folder.file_set.all())
-        response_splits = helpers.make_split_doc(files_list) if len(files_list) != 0 else None
+        response_splits = helpers.load_list_from_url(bot.split_url)
 
         gpt_response = helpers.send_gpt(
             context=bot.description,
