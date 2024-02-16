@@ -71,6 +71,59 @@ def get_folders(request):
     return Response(data={"data": [model_to_dict(folder) for folder in folders]}, status=200)
 
 
+@swagger_auto_schema(tags=['avatar'], method='post')
+@api_view(['POST'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def create_avatar(request):
+    avatar_serializer = serializers.AvatarSerializer(data=request.data)
+    if avatar_serializer.is_valid():
+        avatar = avatar_serializer.save()
+        return Response(status=200, data=model_to_dict(avatar))
+    return Response(data=avatar_serializer.errors, status=400)
+
+
+@swagger_auto_schema(tags=['avatar'], method='post')
+@api_view(['POST'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def update_avatar(request):
+    try:
+        avatar_id = request.data.get('avatar_id')
+        avatar = models.Avatar.objects.get(pk=avatar_id)
+    except:
+        return Response(data={"error": "Avatar not found"}, status=404)
+    avatar_serializer = serializers.AvatarSerializer(data=request.data)
+    if avatar_serializer.is_valid():
+        avatar = avatar_serializer.update(avatar, avatar_serializer.validated_data)
+        return Response(data=model_to_dict(avatar), status=200)
+    return Response(status=400, data=avatar_serializer.errors)
+
+
+@swagger_auto_schema(tags=['avatar'], method='post')
+@api_view(['POST'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def delete_avatar(request):
+    try:
+        avatar = models.Avatar.objects.get(pk=request.data.get('avatar_id'))
+    except:
+        return Response(data={"error": "Avatar not found"})
+
+    avatar.delete()
+
+    return Response(status=200, data={'data': 'avatar_deleted'})
+
+
+@swagger_auto_schema(tags=['avatar'], method='get')
+@api_view(['GET'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def get_avatars(request):
+    avatars = models.Avatar.objects.all()
+    return Response(data=[model_to_dict(data) for data in avatars], status=200)
+
+
 @swagger_auto_schema(tags=['file'], method='post', request_body=serializers.FileCreationSerializer)
 @api_view(['POST'])
 @authentication_classes([TokenAuthentication])
@@ -102,7 +155,6 @@ def update_file(request, file_id):
     if file_serializer.is_valid():
         file_serializer.update(file, validated_data=file_serializer.validated_data)
         if request.data['file'] is not None:
-            helpers.delete_file_remote(file.url)
             file_uploaded = helpers.upload_file(request.data['file'], file.folder.name)
             file.__dict__.update({'url': file_uploaded.get('public_url'), 'type': file_uploaded.get('type')})
             file.save()

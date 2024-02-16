@@ -29,10 +29,8 @@ SECRET_KEY = os.environ.get('SECRET_KEY', default='your secret key')
 DEBUG = "RENDER" in os.environ
 # DEBUG = True
 
-os.environ['OPENAI_API_KEY'] = decouple.config('OPENAI_API_KEY')
-
-OPENAI_API_KEY = decouple.config('OPENAI_API_KEY')
-
+# OPENAI_API_KEY = decouple.config('OPENAI_API_KEY')
+OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY')
 ALLOWED_HOSTS = []
 
 RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
@@ -56,6 +54,7 @@ INSTALLED_APPS = [
     'drf_yasg',
     'rest_framework.authtoken',
     'corsheaders',
+    'channels'
 
 ]
 
@@ -71,11 +70,16 @@ MIDDLEWARE = [
     'whitenoise.middleware.WhiteNoiseMiddleware'
 ]
 
-
 CORS_ALLOWED_ORIGINS = [
     'http://localhost:3000',
     'https://sorayia-front-end.onrender.com'
 ]
+
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels.layers.InMemoryChannelLayer',
+    },
+}
 
 # SWAGGER_SETTINGS = {
 #     'SECURITY_DEFINITIONS': {
@@ -136,25 +140,12 @@ DATABASES = {
     )
 }
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.mysql',
-#         'NAME': 'vote$%122',
-#         'USER': 'root',
-#         'PASSWORD': 'dona',
-#         'HOST': 'localhost',
-#         'PORT': '3306'
-#     }
-# }
-
-
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = os.environ.get('EMAIL_HOST', 'smtp.gmail.com')
 EMAIL_USE_TLS = True
 EMAIL_PORT = os.environ.get('EMAIL_PORT', 587)
 EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', 'novekfreelance.team@gmail.com')
 EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', 'itojahsnskvuycdr')
-
 
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
@@ -204,3 +195,5 @@ if not DEBUG:
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 AUTH_USER_MODEL = 'app.User'
+
+ASGI_APPLICATION = 'SorayiaAPI.routing.application'

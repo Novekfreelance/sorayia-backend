@@ -64,6 +64,8 @@ class BotSerializer(serializers.ModelSerializer):
             'name',
             'model',
             'description',
+            'prompt',
+            'avatar',
             'user'
         )
 
@@ -71,6 +73,8 @@ class BotSerializer(serializers.ModelSerializer):
             'name': {'required': True, },
             'model': {'required': True, },
             'description': {'required': True, },
+            'prompt': {'required': True, },
+            'avatar': {'required': True},
             'user': {'required': True}
         }
 
@@ -84,13 +88,16 @@ class BotCreationSerializer(serializers.ModelSerializer):
             'name',
             # 'file',
             'model',
+            'avatar',
+            'prompt',
             'description',
         )
 
         extra_kwargs = {
             'name': {'required': True, },
-
+            'prompt': {'required': True, },
             'model': {'required': True, },
+            'avatar': {'required': True},
             'description': {'required': True},
         }
 
@@ -108,6 +115,8 @@ class BotUpdateSerializer(serializers.ModelSerializer):
             'name',
             'file',
             'model',
+            'prompt',
+            'avatar',
             'description',
         )
 
@@ -115,9 +124,38 @@ class BotUpdateSerializer(serializers.ModelSerializer):
             'name': {'required': False, },
             'file': {'required': False, },
             'model': {'required': False, },
+            'prompt': {'required': False},
+            'avatar': {'required': False},
             'description': {'required': False},
         }
 
+
+class AvatarSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.Avatar,
+        fields = ('name', 'url')
+
+
+class AvatarCreationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.Avatar,
+        fields = ('name', 'url')
+
+        extra_kwargs = {
+            'name': {'required': True, },
+            'url': {'required': True}
+        }
+
+
+class AvatarUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.Avatar,
+        fields = ('name', 'url')
+
+        extra_kwargs = {
+            'name': {'required': False, },
+            'url': {'required': False, }
+        }
 
 class ChatSerializer(serializers.ModelSerializer):
     class Meta:

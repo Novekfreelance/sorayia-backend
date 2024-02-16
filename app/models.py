@@ -30,12 +30,19 @@ class Folder(models.Model):
     update_at = models.DateTimeField(null=True, blank=True)
 
 
+class Avatar(models.Model):
+    id = models.UUIDField(null=False, blank=False, primary_key=True, default=uuid.uuid4)
+    name = models.CharField(null=False, blank=False, max_length=30, default='')
+    url = models.TextField(null=False, blank=False, default='')
+
+
 class Bot(models.Model):
     id = models.UUIDField(null=False, blank=False, primary_key=True, default=uuid.uuid4)
     name = models.CharField(null=False, blank=False, max_length=30, default='')
-    avatar = models.TextField(null=True, blank=True, default='')
+    avatar = models.ForeignKey(Avatar, on_delete=models.CASCADE, null=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     model = models.CharField(null=False, blank=False, max_length=50)
+    prompt = models.TextField(null=False, blank=False, default='')
     description = models.TextField(null=False, blank=False, default='')
     split_url = models.TextField(null=True, blank=True)
     created_at = models.DateTimeField(null=False, blank=False, default=datetime.datetime.utcnow())

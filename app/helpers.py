@@ -107,6 +107,20 @@ def format_docs(docs):
     return "\n\n".join(doc.page_content for doc in docs)
 
 
+# def gpt_with_content_based():
+#     qa_system_prompt = """Tu est un assistant utile. Sers toi des informations ci-dessous pour répondre aux question.
+#     {context}
+#
+#     Voilà la quetion de l'utilistateur :
+#     """
+#     qa_prompt = ChatPromptTemplate.from_messages(
+#         [
+#             ("system", qa_system_prompt),
+#             MessagesPlaceholder(variable_name="chat_history"),
+#             ("human", "{question}"),
+#         ]
+#     )
+
 def send_gpt(context, model, human_prompt, human_input, previous_messages, splits=None):
     # rag_prompt_template = """
     # Tu est un assistant utile. Sers toi des informations ci-dessous pour répondre aux question.
@@ -167,5 +181,6 @@ def send_gpt(context, model, human_prompt, human_input, previous_messages, split
         #     question_generator=question_generator_chain
         # )
         # chain = LLMChain(llm=chat, prompt=chat_prompt, memory=memory, verbose=True, retriever=retriever | format_docs)
+        response = chain.invoke({"question": human_input, "chat_history": memory.chat_history})
+        return response
     response = chain.run(human_input)
-    return response

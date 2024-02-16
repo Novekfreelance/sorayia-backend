@@ -1,4 +1,6 @@
 from django.urls import path
+
+from . import consumers
 from .auth import views as auth_views
 from .bot import views as bot_views
 
@@ -29,7 +31,12 @@ urlpatterns = [
     # Converse
     path('create_chat', bot_views.create_chat, name='create-chat'),
     path('get_chat', bot_views.get_chat, name='get-chat'),
-    path('send_message', bot_views.send_message, name='send-message')
+    path('send_message', bot_views.send_message, name='send-message'),
 
-
+    # Avatar
+    path('create_avatar', bot_views.create_avatar, name='create-avatar'),
+    path('update_avatar', bot_views.update_avatar, name='update-avatar'),
+    path('delete_avatar', bot_views.delete_avatar, name='delete'),
+    path('get_avatars', bot_views.get_avatars, name='get-avatars'),
 ]
+
