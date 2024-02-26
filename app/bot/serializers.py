@@ -132,13 +132,13 @@ class BotUpdateSerializer(serializers.ModelSerializer):
 
 class AvatarSerializer(serializers.ModelSerializer):
     class Meta:
-        model = models.Avatar,
+        model = models.Avatar
         fields = ('name', 'url')
 
 
 class AvatarCreationSerializer(serializers.ModelSerializer):
     class Meta:
-        model = models.Avatar,
+        model = models.Avatar
         fields = ('name', 'url')
 
         extra_kwargs = {
@@ -149,13 +149,14 @@ class AvatarCreationSerializer(serializers.ModelSerializer):
 
 class AvatarUpdateSerializer(serializers.ModelSerializer):
     class Meta:
-        model = models.Avatar,
+        model = models.Avatar
         fields = ('name', 'url')
 
         extra_kwargs = {
             'name': {'required': False, },
             'url': {'required': False, }
         }
+
 
 class ChatSerializer(serializers.ModelSerializer):
     class Meta:

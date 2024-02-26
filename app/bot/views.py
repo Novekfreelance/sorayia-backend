@@ -76,7 +76,7 @@ def get_folders(request):
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
 def create_avatar(request):
-    avatar_serializer = serializers.AvatarSerializer(data=request.data)
+    avatar_serializer = serializers.AvatarCreationSerializer(data=request.data)
     if avatar_serializer.is_valid():
         avatar = avatar_serializer.save()
         return Response(status=200, data=model_to_dict(avatar))
