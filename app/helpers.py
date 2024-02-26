@@ -133,6 +133,7 @@ def send_gpt(context, model, human_prompt, human_input, previous_messages, split
     # print(splits)
     # rag_prompt = PromptTemplate.from_template(rag_prompt_template)
     print(type(splits))
+    splits = None
     if splits is not None:
         # splits = list()
         vectorstore = Chroma.from_documents(documents=splits,
@@ -182,5 +183,6 @@ def send_gpt(context, model, human_prompt, human_input, previous_messages, split
         # )
         # chain = LLMChain(llm=chat, prompt=chat_prompt, memory=memory, verbose=True, retriever=retriever | format_docs)
         response = chain.invoke({"question": human_input, "chat_history": memory.chat_history})
-        return response
     response = chain.run(human_input)
+    print(response)
+    return response

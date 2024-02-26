@@ -51,7 +51,7 @@ def login(request):
     return Response(status=status.HTTP_400_BAD_REQUEST)
 
 
-@swagger_auto_schema(tags=['auth'], method='post', request_body=serializers.UserCreationSerializer,)
+@swagger_auto_schema(tags=['auth'], method='post', request_body=serializers.UserCreationSerializer, )
 @api_view(['POST'])
 def register(request):
     user_creation_serializer = serializers.UserCreationSerializer(data=request.data)
@@ -94,24 +94,29 @@ def register(request):
 @swagger_auto_schema(tags=['auth'], method='post')
 @api_view(['POST'])
 def validate_email(request):
-    user_id = request.data.get('id')
-    print(user_id)
-    try:
-        UUID(user_id)
-    except:
-        return Response(data={'data': 'user not valid'}, status=400)
-    print(request.session.get(str(user_id)))
-    if request.session.get(str(user_id)) == request.data.get('code'):
+    validate_serializer = serializers.ValidateEmail(data=request.data)
+    if validate_serializer.is_valid():
+        user_id = request.data.get('id')
+        print(user_id)
+        try:
+            UUID(user_id)
+        except:
+            return Response(data={'data': 'user not valid'}, status=400)
+        print(request.session.get(str(user_id)))
         try:
             user = models.User.objects.get(pk=user_id)
         except:
             return Response(data={'data': "user not found"}, status=status.HTTP_404_NOT_FOUND)
 
-        user.__dict__.update({'is_active': True})
-        user.save()
-        return Response(status=200)
+        if request.session.get(str(user_id)) == request.data.get('code'):
 
-    return Response(data={'data': 'code incorrect ou invalid'}, status=400)
+            user.__dict__.update({'is_active': True})
+            user.save()
+            return Response(status=200)
+
+        return Response(data={'data': 'code incorrect ou invalid'}, status=400)
+
+    return Response(data=validate_serializer.errors, status=400)
 
 
 @swagger_auto_schema(tags=['auth'], method='post')

@@ -55,3 +55,8 @@ class ResetPasswordSerializer(serializers.Serializer):
     id = serializers.UUIDField(required=True)
     password = serializers.CharField(max_length=128, write_only=True)
     new_password = serializers.CharField(max_length=128, write_only=True)
+
+
+class ValidateEmail(serializers.Serializer):
+    id = serializers.CharField(required=True)
+    code = serializers.CharField(max_length=20, required=True)

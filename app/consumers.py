@@ -13,7 +13,8 @@ class ChatConsumer(WebsocketConsumer):
 
     def receive(self, text_data):
         text_data_json = json.loads(text_data)
-        message = text_data_json['text']
+        message:str = text_data_json['text']
+        # if message.lower() == ''
         print(message)
         self.send(text_data=json.dumps({
             'text': f"You sent a message : {message}"
