@@ -104,13 +104,13 @@ def update_avatar(request):
 @api_view(['POST'])
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
-def delete_avatar(request, avatar_id):
+def delete_avatar(request):
     try:
+        avatar_id = request.data.get('avatar_id')
         avatar = models.Avatar.objects.get(pk=avatar_id)
+        avatar.delete()
     except:
         return Response(data={"error": "Avatar not found"})
-
-    avatar.delete()
 
     return Response(status=200, data={'data': 'avatar_deleted'})
 

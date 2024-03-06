@@ -36,7 +36,7 @@ urlpatterns = [
     # Avatar
     path('create_avatar', bot_views.create_avatar, name='create-avatar'),
     path('update_avatar', bot_views.update_avatar, name='update-avatar'),
-    path('delete_avatar/<avatar_id>', bot_views.delete_avatar, name='delete'),
+    path('delete_avatar', bot_views.delete_avatar, name='delete'),
     path('get_avatars', bot_views.get_avatars, name='get-avatars'),
 ]
 
