@@ -31,6 +31,7 @@ from langchain_core.output_parsers import StrOutputParser
 from langchain_core.runnables import RunnablePassthrough
 
 from SorayiaAPI import settings
+from app.data import def_prompt, PROMPT
 
 
 def generate_random_string(length):
@@ -89,10 +90,10 @@ def load_list_from_url(url):
         response.raise_for_status()  # Raise an HTTPError for bad responses
         content = response.content
         print('gobe')
-        print(type(pickle.loads(content)))
+        # print(type(pickle.loads(content)))
         # Assuming the content of the file is a valid Python list literal
         data_list = pickle.loads(content)
-        print(data_list)
+        # print(data_list)
         return data_list
     except requests.exceptions.RequestException as e:
         print(f"Error loading data from URL: {e}")
@@ -101,6 +102,22 @@ def load_list_from_url(url):
 
 def generated_code():
     return str(random.randint(100000, 999999))
+
+
+def get_desc_prompt(type, name) -> str:
+    if type == '1':
+        prompt = PROMPT[0]
+        return def_prompt(name, prompt.get('titre'), prompt.get('objectif'), prompt.get('caracteristique'))
+
+    if type == '2':
+        prompt = PROMPT[1]
+        return def_prompt(name, prompt.get('titre'), prompt.get('objectif'), prompt.get('caracteristique'))
+
+    if type == '3':
+        prompt = PROMPT[2]
+        return def_prompt(name, prompt.get('titre'), prompt.get('objectif'), prompt.get('caracteristique'))
+
+    return "Data Not Found"
 
 
 def format_docs(docs):
@@ -132,7 +149,7 @@ def send_gpt(context, model, human_prompt, human_input, previous_messages, split
     retriever = None
     # print(splits)
     # rag_prompt = PromptTemplate.from_template(rag_prompt_template)
-    print(type(splits))
+    # print(type(splits))
     splits = None
     if splits is not None:
         # splits = list()
@@ -142,7 +159,7 @@ def send_gpt(context, model, human_prompt, human_input, previous_messages, split
         # Retrieve and generate using the relevant snippets of the blog.
         retriever = vectorstore.as_retriever()
 
-    chat = ChatOpenAI(model_name=model, temperature=0.7, max_tokens=500)
+    chat = ChatOpenAI(model_name=model, temperature=0.7, openai_api_key=settings.OPENAI_API_KEY)
     print(context)
     system_message_prompt = SystemMessagePromptTemplate.from_template(context)
     human_message_prompt = HumanMessagePromptTemplate.from_template(human_prompt)

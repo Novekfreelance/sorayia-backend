@@ -3,6 +3,7 @@ import uuid
 from rest_framework.serializers import ModelSerializer, ValidationError
 from app import models
 from rest_framework import serializers
+from app.auth.serializers import UserSerializer
 
 
 class FolderSerializer(serializers.ModelSerializer):
@@ -58,29 +59,41 @@ class FileUpdateSerializer(serializers.ModelSerializer):
 
 
 class BotSerializer(serializers.ModelSerializer):
+    avatar = serializers.SerializerMethodField()
+    user = serializers.SerializerMethodField()
+    folders = serializers.SerializerMethodField()
+
     class Meta:
         model = models.Bot
         fields = (
+            'id',
             'name',
             'model',
             'description',
             'prompt',
             'avatar',
-            'user'
+            'user',
+            'folders'
         )
 
-        extra_kwargs = {
-            'name': {'required': True, },
-            'model': {'required': True, },
-            'description': {'required': True, },
-            'prompt': {'required': True, },
-            'avatar': {'required': True},
-            'user': {'required': True}
-        }
+    def get_avatar(self, obj):
+        if obj.avatar:
+            return AvatarSerializer(obj.avatar).data
+        return None
+
+    def get_user(self, obj):
+        if obj.user:
+            return UserSerializer(obj.user).data
+        return None
+
+    def get_folders(self, obj):
+        if obj.folders:
+            return [FolderSerializer(folder).data for folder in obj.folders.all()]
 
 
 class BotCreationSerializer(serializers.ModelSerializer):
     # file = serializers.FileField(write_only=True)
+    avatar = serializers.PrimaryKeyRelatedField(queryset=models.Avatar.objects.all())
 
     class Meta:
         model = models.Bot
@@ -108,6 +121,7 @@ class BotCreationSerializer(serializers.ModelSerializer):
 
 class BotUpdateSerializer(serializers.ModelSerializer):
     file = serializers.FileField(write_only=True, required=False)
+    avatar = serializers.PrimaryKeyRelatedField(queryset=models.Avatar.objects.all())
 
     class Meta:
         model = models.Bot
@@ -133,18 +147,11 @@ class BotUpdateSerializer(serializers.ModelSerializer):
 class AvatarSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Avatar
-        fields = ('name', 'url')
+        fields = ('id', 'name', 'url')
 
 
-class AvatarCreationSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = models.Avatar
-        fields = ('name', 'url')
-
-        extra_kwargs = {
-            'name': {'required': True, },
-            'url': {'required': True}
-        }
+class AvatarCreationSerializer(AvatarSerializer):
+    pass
 
 
 class AvatarUpdateSerializer(serializers.ModelSerializer):
@@ -159,29 +166,62 @@ class AvatarUpdateSerializer(serializers.ModelSerializer):
 
 
 class ChatSerializer(serializers.ModelSerializer):
+    user = serializers.SerializerMethodField()
+    bot = serializers.SerializerMethodField()
+    messages = serializers.SerializerMethodField()
+
     class Meta:
         model = models.Chat
-        fields = ('bot',)
+        fields = ('id', 'bot', 'name', 'user', 'bot', 'messages')
+
+    def get_user(self, obj):
+        if obj.user:
+            return UserSerializer(obj.user).data
+        return None
+
+    def get_bot(self, obj):
+        if obj.bot:
+            return BotSerializer(obj.bot).data
+        return None
+
+    def get_messages(self, obj):
+        if obj.messages:
+            return [MessageSerializer(message).data for message in obj.messages.all()]
+        return None
+
+
+class ChatCreationSerializer(serializers.ModelSerializer):
+    bot = serializers.PrimaryKeyRelatedField(queryset=models.Bot.objects.all())
+
+    class Meta:
+        model = models.Chat
+        fields = ('bot', 'name')
 
         extra_kwargs = {
-            'bot': {'required': True, },
+            'bot': {'required': True},
+            'name': {'required': True}
         }
 
 
-class ChatCreationSerializer(ChatSerializer):
-    pass
-
-
 class MessageSerializer(serializers.ModelSerializer):
+    # chat = serializers.SerializerMethodField()
+    bot = serializers.SerializerMethodField()
+
     class Meta:
         model = models.Message
         fields = (
+            'id',
             'chat',
             'model',
             'content',
             'type',
             'bot'
         )
+
+    def get_bot(self, obj):
+        if obj.bot:
+            return BotSerializer(obj.bot).data
+        return None
 
 
 class MessageCreationSerializer(MessageSerializer):

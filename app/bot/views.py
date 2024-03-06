@@ -104,9 +104,9 @@ def update_avatar(request):
 @api_view(['POST'])
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
-def delete_avatar(request):
+def delete_avatar(request, avatar_id):
     try:
-        avatar = models.Avatar.objects.get(pk=request.data.get('avatar_id'))
+        avatar = models.Avatar.objects.get(pk=avatar_id)
     except:
         return Response(data={"error": "Avatar not found"})
 
@@ -121,7 +121,7 @@ def delete_avatar(request):
 @permission_classes([IsAuthenticated])
 def get_avatars(request):
     avatars = models.Avatar.objects.all()
-    return Response(data=[model_to_dict(data) for data in avatars], status=200)
+    return Response(data=[serializers.AvatarSerializer(avatar).data for avatar in avatars], status=200)
 
 
 @swagger_auto_schema(tags=['file'], method='post', request_body=serializers.FileCreationSerializer)
@@ -129,16 +129,21 @@ def get_avatars(request):
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
 def create_file(request):
-    file_serializer = serializers.FileCreationSerializer(data=request.data)
-    if file_serializer.is_valid():
-        folder = models.Folder.objects.get(pk=request.data['folder'])
-        file_uploaded = helpers.upload_file(request.data['file'], folder.name)
-        file_serializer.validated_data.pop('file')
-        file = file_serializer.save(url=file_uploaded.get('public_url'), type=file_uploaded.get('type'))
-    else:
-        return Response(data=file_serializer.errors, status=400)
+    files = []
+    for filex in request.FILES.getlist('file'):
+        file_serializer = serializers.FileCreationSerializer(data=request.data)
+        if file_serializer.is_valid():
+            folder = models.Folder.objects.get(pk=request.data['folder'])
+            print(len(request.FILES.getlist('file')))
 
-    return Response(data=model_to_dict(file), status=200)
+            file_uploaded = helpers.upload_file(filex, folder.name)
+            file_serializer.validated_data.pop('file', None)
+            file = file_serializer.save(url=file_uploaded.get('public_url'), type=file_uploaded.get('type'))
+            files.append(file)
+        else:
+            return Response(data=file_serializer.errors, status=400)
+
+    return Response(data=[model_to_dict(file) for file in files], status=200)
 
 
 @swagger_auto_schema(tags=['file'], method='post')
@@ -187,6 +192,11 @@ def create_bot(request):
     if bot_serializer.is_valid():
         # file_uploaded = helpers.upload_file(request.data['file'], "avatar")
         # bot_serializer.validated_data.pop('file')
+        bot_serializer.validated_data['prompt'] = helpers.get_desc_prompt(
+            request.data.get('prompt'),
+            request.data.get('name')
+        )
+
         bot = bot_serializer.save(user=request.user)
 
         folders_id = request.data['folders']
@@ -216,12 +226,7 @@ def create_bot(request):
 @permission_classes([IsAuthenticated])
 def get_bots(request):
     bots = models.Bot.objects.filter(user=request.user)
-    bots_all = []
-    for bot in bots:
-        bot_response = model_to_dict(bot, exclude=('folders',))
-        bot_response['folders'] = [model_to_dict(folder_object) for folder_object in bot.folders.all()]
-        bots_all.append(bot_response)
-    return Response(data={"data": bots_all}, status=200)
+    return Response(data=[serializers.BotSerializer(bot).data for bot in bots], status=200)
 
 
 @api_view(['POST'])
@@ -270,23 +275,18 @@ def create_chat(request):
     chat_serializer = serializers.ChatCreationSerializer(data=request_data)
     if chat_serializer.is_valid():
         chat = chat_serializer.save(user=request.user)
-        return Response(data=model_to_dict(chat), status=status.HTTP_200_OK)
+        return Response(data=serializers.ChatSerializer(chat).data, status=status.HTTP_200_OK)
     return Response(status=status.HTTP_400_BAD_REQUEST)
 
 
-@swagger_auto_schema(tags=['bot'], method='post')
-@api_view(['POST'])
+@swagger_auto_schema(tags=['bot'], method='get')
+@api_view(['GET'])
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
-def get_chat(request):
-    chat_id = request.data['id']
+def get_chat(request, pk):
+    chat_id = pk
     chat = models.Chat.objects.get(id=chat_id)
-    messages = models.Message.objects.filter(chat_id=chat_id)
-
-    response = {
-        'chat': model_to_dict(chat),
-        "messages": [model_to_dict(message) for message in messages]
-    }
+    response = serializers.ChatSerializer(chat).data
 
     return Response(response, status=200)
 
@@ -300,7 +300,9 @@ def send_message(request):
     bot = models.Bot.objects.get(pk=request.data['bot'])
     print(bot.description)
     if message_serializer.is_valid():
-        message_serializer.save(user=request.user)
+        chat = message_serializer.validated_data.get('chat')
+        message = message_serializer.save(user=request.user)
+        chat.messages.add(message)
         previous_messages = []
         previous_object = models.Message.objects.filter(chat__id=request.data['chat'])
         for message in previous_object:
@@ -315,7 +317,7 @@ def send_message(request):
         gpt_response = helpers.send_gpt(
             context=bot.description,
             model=bot.model,
-            human_prompt='{"question": "chat_history"}',
+            human_prompt='{"read", "chat"}',
             human_input=request.data['content'],
             previous_messages=previous_messages,
             splits=response_splits
@@ -329,7 +331,9 @@ def send_message(request):
             content=gpt_response,
             user_id=request.user.pk
         )
+
         gpt_message.save()
+        chat.messages.add(gpt_message)
 
         return Response(model_to_dict(gpt_message), status=status.HTTP_200_OK)
     else:

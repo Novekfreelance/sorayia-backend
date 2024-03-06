@@ -52,10 +52,12 @@ class Bot(models.Model):
 
 class Chat(models.Model):
     id = models.UUIDField(null=False, blank=False, primary_key=True, default=uuid.uuid4)
+    name = models.CharField(null=True, blank=False, max_length=500)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     bot = models.ForeignKey(Bot, on_delete=models.CASCADE)
     created_at = models.DateTimeField(null=False, blank=False, default=datetime.datetime.utcnow())
     update_at = models.DateTimeField(null=True, blank=True)
+    messages = models.ManyToManyField('Message', related_name='chat_messages')
 
 
 class Message(models.Model):
