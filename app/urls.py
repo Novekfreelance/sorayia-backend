@@ -32,11 +32,15 @@ urlpatterns = [
     path('create_chat', bot_views.create_chat, name='create-chat'),
     path('get_chat/<pk>', bot_views.get_chat, name='get-chat'),
     path('send_message', bot_views.send_message, name='send-message'),
+    path('get_chats', bot_views.get_chats, name='get-chats'),
 
     # Avatar
     path('create_avatar', bot_views.create_avatar, name='create-avatar'),
     path('update_avatar', bot_views.update_avatar, name='update-avatar'),
     path('delete_avatar', bot_views.delete_avatar, name='delete'),
     path('get_avatars', bot_views.get_avatars, name='get-avatars'),
+
+    path('contact/create', bot_views.contact, name='contact-create'),
+    path('contact/get', bot_views.get_contacts, name='contact-get')
 ]
 

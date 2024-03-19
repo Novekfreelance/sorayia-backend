@@ -241,3 +241,9 @@ class MessageCreationSerializer(MessageSerializer):
             'type': {'required': True},
             'bot': {'required': True}
         }
+
+
+class ContactSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.Contact
+        fields = ('username', 'email', 'message')

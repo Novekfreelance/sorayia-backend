@@ -110,7 +110,7 @@ def delete_avatar(request):
         avatar = models.Avatar.objects.get(pk=avatar_id)
         avatar.delete()
     except:
-        return Response(data={"error": "Avatar not found"})
+        return Response(data={"error": "Avatar not found"}, status=400)
 
     return Response(status=200, data={'data': 'avatar_deleted'})
 
@@ -291,6 +291,15 @@ def get_chat(request, pk):
     return Response(response, status=200)
 
 
+@swagger_auto_schema(tags=['bot'], method='get')
+@api_view(['GET'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def get_chats(request):
+    chats = models.Chat.objects.all()
+    return Response(data=[serializers.ChatSerializer(chat).data for chat in chats], status=200)
+
+
 @swagger_auto_schema(tags=['bot'], method='post')
 @api_view(['POST'])
 @authentication_classes([TokenAuthentication])
@@ -338,3 +347,25 @@ def send_message(request):
         return Response(model_to_dict(gpt_message), status=status.HTTP_200_OK)
     else:
         return Response(message_serializer.errors, status=status.HTTP_200_OK)
+
+
+@swagger_auto_schema(tags=['bot'], method='get')
+@api_view(['GET'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def contact(request):
+    contact_serializer = serializers.ContactSerializer(data=request.data)
+    if contact_serializer.is_valid():
+        contact_serializer.save()
+        return Response(status=200)
+    else:
+        return Response(status=400)
+
+
+@swagger_auto_schema(tags=['bot'], method='get')
+@api_view(['GET'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def get_contacts(request):
+    contacts = models.Contact.objects.all()
+    return Response(data=[serializers.ContactSerializer(con).data for con in contacts], status=200)

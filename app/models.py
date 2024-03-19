@@ -80,3 +80,9 @@ class File(models.Model):
     type = models.TextField(null=True, blank=True)
     created_at = models.DateTimeField(null=False, blank=False, default=datetime.datetime.utcnow())
     update_at = models.DateTimeField(null=True, blank=True)
+
+
+class Contact(models.Model):
+    username = models.CharField(max_length=100, null=True, blank=True)
+    email = models.EmailField(max_length=100, null=True, blank=True)
+    created_at = models.DateTimeField(null=False, blank=False, auto_now=True)
