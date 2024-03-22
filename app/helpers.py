@@ -27,6 +27,7 @@ from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_community.embeddings import OpenAIEmbeddings
 from langchain_community.vectorstores.chroma import Chroma
+from langchain_core.messages import HumanMessage, AIMessage
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.runnables import RunnablePassthrough
 
@@ -64,7 +65,7 @@ def upload_file(file, folder, prevent_content_type=False):
     file.seek(0)
     final_url = f"https://storage.googleapis.com/sorayia-d28db.appspot.com/{folder}/{libelle}"
     response = requests.put(url, headers={'Content-Type': 'text/plain' if prevent_content_type else file.content_type},
-                           data=file.read())
+                            data=file.read())
     print(response)
     return {"public_url": final_url, "type": extension}
 
@@ -150,16 +151,18 @@ def send_gpt(context, model, human_prompt, human_input, previous_messages, split
     # print(splits)
     # rag_prompt = PromptTemplate.from_template(rag_prompt_template)
     # print(type(splits))
-    splits = None
+    OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY')
+    # splits = None
+    vectorstore = None
     if splits is not None:
         # splits = list()
         vectorstore = Chroma.from_documents(documents=splits,
-                                        embedding=OpenAIEmbeddings(openai_api_key=settings.OPENAI_API_KEY))
+                                            embedding=OpenAIEmbeddings(openai_api_key=OPENAI_API_KEY))
 
         # Retrieve and generate using the relevant snippets of the blog.
         retriever = vectorstore.as_retriever()
 
-    chat = ChatOpenAI(model_name=model, temperature=0.7, openai_api_key=settings.OPENAI_API_KEY)
+    chat = ChatOpenAI(model_name=model, temperature=0.7, openai_api_key=OPENAI_API_KEY, )
     print(context)
     system_message_prompt = SystemMessagePromptTemplate.from_template(context)
     human_message_prompt = HumanMessagePromptTemplate.from_template(human_prompt)
@@ -170,10 +173,13 @@ def send_gpt(context, model, human_prompt, human_input, previous_messages, split
     )
 
     memory = ConversationBufferMemory(memory_key="chat_history", return_messages=True)
+    chat_history_buffer = []
     for msg in previous_messages:
         if msg["type"] == "user":
+            chat_history_buffer.append(HumanMessage(content=msg["message"]))
             memory.chat_memory.add_user_message(msg["message"])
         else:
+            chat_history_buffer.append(AIMessage(content=msg["message"]))
             memory.chat_memory.add_ai_message(msg["message"])
 
     # rag_chain = (
@@ -186,20 +192,34 @@ def send_gpt(context, model, human_prompt, human_input, previous_messages, split
     if retriever is None:
         chain = LLMChain(llm=chat, prompt=chat_prompt, memory=memory, verbose=True)
     else:
-        chain = (
-                {"context": retriever | format_docs, "user_input": RunnablePassthrough()}
-                # {"context": retriever | format_docs, "question": ""}
+        # chain = (
+        #         {"context": retriever | format_docs, "user_input": RunnablePassthrough()}
+        #         # {"context": retriever | format_docs, "question": ""}
+        #         | chat_prompt
+        #         | chat
+        #         | StrOutputParser()
+        # )
+
+        contextualize_q_chain = chat_prompt | chat | StrOutputParser()
+
+        def contextualized_question(input: dict):
+            if input.get("chat_history"):
+                return contextualize_q_chain
+            else:
+                return input["question"]
+
+        rag_chain = (
+                RunnablePassthrough.assign(
+                    context=contextualized_question | retriever | format_docs
+                )
                 | chat_prompt
                 | chat
-                | StrOutputParser()
         )
-        # question_generator_chain = LLMChain(llm=chat, prompt=chat_prompt, memory=memory, verbose=True,)
-        # chain = ConversationalRetrievalChain(
-        #     retriever=retriever,
-        #     question_generator=question_generator_chain
-        # )
-        # chain = LLMChain(llm=chat, prompt=chat_prompt, memory=memory, verbose=True, retriever=retriever | format_docs)
-        response = chain.invoke({"question": human_input, "chat_history": memory.chat_history})
+
+        response = rag_chain.invoke({"question": human_input, "chat_history": chat_history_buffer})
+        print(response.content)
+        vectorstore.delete_collection()
+        return response.content
     response = chain.run(human_input)
     print(response)
     return response

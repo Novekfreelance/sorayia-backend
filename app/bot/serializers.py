@@ -203,6 +203,21 @@ class ChatCreationSerializer(serializers.ModelSerializer):
         }
 
 
+class ChatUpdateSerializer(serializers.ModelSerializer):
+    # bot = serializers.PrimaryKeyRelatedField(queryset=models.Bot.objects.all())
+
+    class Meta:
+        model = models.Chat
+        fields = (
+            # 'bot',
+            'name',)
+
+        extra_kwargs = {
+            # 'bot': {'required': False},
+            'name': {'required': False}
+        }
+
+
 class MessageSerializer(serializers.ModelSerializer):
     # chat = serializers.SerializerMethodField()
     bot = serializers.SerializerMethodField()

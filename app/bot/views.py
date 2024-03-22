@@ -279,6 +279,16 @@ def create_chat(request):
     return Response(status=status.HTTP_400_BAD_REQUEST)
 
 
+def update_chat(request, chat_id):
+    chat = models.Chat.objects.filter(pk=chat_id).first()
+    if chat is None:
+        return Response(data={'chat not found'}, status=status.HTTP_404_NOT_FOUND)
+    chat_serializer = serializers.ChatUpdateSerializer(data=request.data)
+    chat = chat_serializer.update(chat, validated_data=chat_serializer.validated_data)
+
+    return Response(data=serializers.ChatSerializer(chat).data, status=status.HTTP_200_OK)
+
+
 @swagger_auto_schema(tags=['bot'], method='get')
 @api_view(['GET'])
 @authentication_classes([TokenAuthentication])
@@ -326,7 +336,7 @@ def send_message(request):
         gpt_response = helpers.send_gpt(
             context=bot.description,
             model=bot.model,
-            human_prompt='{"read", "chat"}',
+            human_prompt='{question}',
             human_input=request.data['content'],
             previous_messages=previous_messages,
             splits=response_splits
