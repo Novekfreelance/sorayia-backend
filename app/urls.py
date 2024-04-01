@@ -27,6 +27,7 @@ urlpatterns = [
     path('create_bot', bot_views.create_bot, name='create-bot'),
     path('update_bot/<bot_id>', bot_views.update_bot, name='update-bot'),
     path('get_bots', bot_views.get_bots, name='get-bots'),
+    path('delete_bot', bot_views.delete_bot, name='delete-bot'),
 
     # Converse
     path('create_chat', bot_views.create_chat, name='create-chat'),

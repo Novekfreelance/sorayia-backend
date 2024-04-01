@@ -264,6 +264,21 @@ def update_bot(request, bot_id):
     return Response(data=model_to_dict(bot), status=status.HTTP_200_OK)
 
 
+@swagger_auto_schema(tags=['avatar'], method='post')
+@api_view(['POST'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def delete_bot(request):
+    try:
+        bot_id = request.data.get('bot_id')
+        bot = models.Bot.objects.get(pk=bot_id)
+        bot.delete()
+    except:
+        return Response(data={"error": "Bot not found"}, status=400)
+
+    return Response(status=200, data={'data': 'bot_deleted'})
+
+
 # Converse
 
 @swagger_auto_schema(tags=['bot'], method='post')
