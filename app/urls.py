@@ -31,6 +31,7 @@ urlpatterns = [
 
     # Converse
     path('create_chat', bot_views.create_chat, name='create-chat'),
+    path('update_chat/<chat_id>', bot_views.update_chat, name='update-chat'),
     path('get_chat/<pk>', bot_views.get_chat, name='get-chat'),
     path('send_message', bot_views.send_message, name='send-message'),
     path('get_chats', bot_views.get_chats, name='get-chats'),

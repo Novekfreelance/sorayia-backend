@@ -294,6 +294,10 @@ def create_chat(request):
     return Response(status=status.HTTP_400_BAD_REQUEST)
 
 
+@swagger_auto_schema(tags=['bot'], method='post')
+@api_view(['POST'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
 def update_chat(request, chat_id):
     chat = models.Chat.objects.filter(pk=chat_id).first()
     if chat is None:
@@ -349,7 +353,7 @@ def send_message(request):
         response_splits = helpers.load_list_from_url(bot.split_url)
 
         gpt_response = helpers.send_gpt(
-            context=bot.description,
+            context=bot.description if bot.prompt is None or bot.prompt == 'Date not found' else bot.prompt,
             model=bot.model,
             human_prompt='{question}',
             human_input=request.data['content'],
