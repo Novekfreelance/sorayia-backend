@@ -36,6 +36,7 @@ chromadb = "^0.4.22"
 tiktoken = "^0.5.2"
 pypdf = "^4.0.1"
 channels = "3"
+pymysql = "^1.1.0"
 
 
 [build-system]
