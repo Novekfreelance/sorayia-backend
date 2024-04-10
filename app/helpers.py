@@ -159,7 +159,7 @@ def send_gpt(context, model, human_prompt, human_input, previous_messages, split
     OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY')
     # splits = None
     vectorstore = None
-    print(splits)
+    # print(splits)
     if splits is not None:
         # splits = list()
         vectorstore = Chroma.from_documents(documents=splits,
