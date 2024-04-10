@@ -32,10 +32,10 @@ firebase-admin = "^6.3.0"
 langchain = ">=0.0.327,<0.1.0"
 python-decouple = "^3.8"
 openai = "0.28.1"
-chromadb = "^0.3.29"
 tiktoken = "^0.5.2"
 pypdf = "^4.0.1"
 channels = "3"
+chromadb = "0.3.29"
 
 
 [build-system]

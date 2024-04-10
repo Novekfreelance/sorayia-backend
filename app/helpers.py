@@ -1,4 +1,9 @@
 import io
+
+# __import__('pysqlite3')
+# import sys
+# sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
+
 import pickle
 import random
 import string
