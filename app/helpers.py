@@ -156,7 +156,8 @@ def send_gpt(context, model, human_prompt, human_input, previous_messages, split
     # print(splits)
     # rag_prompt = PromptTemplate.from_template(rag_prompt_template)
     # print(type(splits))
-    OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY')
+    # OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY')
+    # OPENAI_API_KEY = ""
     # splits = None
     vectorstore = None
     # print(splits)

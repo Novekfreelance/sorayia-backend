@@ -329,6 +329,10 @@ def get_chats(request):
     return Response(data=[serializers.ChatSerializer(chat).data for chat in chats], status=200)
 
 
+@swagger_auto_schema(tags=['bot'], method='post')
+@api_view(['POST'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
 def delete_chat(request):
     chat = models.Chat.objects.get(pk=request.data.get('chat_id'))
     if not chat:

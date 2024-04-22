@@ -35,7 +35,7 @@ openai = "0.28.1"
 tiktoken = "^0.5.2"
 pypdf = "^4.0.1"
 channels = "3"
-chromadb = "0.3.29"
+chromadb = "^0.4.24"
 
 
 [build-system]
