@@ -339,7 +339,8 @@ def delete_chat(request):
         return Response(data={'error': 'chat not found'}, status=status.HTTP_400_BAD_REQUEST)
 
     chat.delete()
-    return Response(status=status.HTTP_204_NO_CONTENT)
+    return Response(status=status.HTTP_200_OK)
+
 
 @swagger_auto_schema(tags=['bot'], method='post')
 @api_view(['POST'])
